@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Frontier Data Radar</title>
+<style>
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f9f9f7;color:#0b0b0b;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0}
+.gate{max-width:400px;width:90%;background:#fcfcfb;border:1px solid #e1e0d9;border-radius:14px;padding:28px;box-shadow:0 4px 16px rgba(11,11,11,.05)}
+h2{margin:0 0 6px;display:flex;align-items:center;gap:9px}
+.dot{width:9px;height:9px;border-radius:50%;background:#2a78d6;display:inline-block}
+p{color:#52514e;font-size:13.5px;line-height:1.5}
+input{width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:9px 12px;border:1px solid #e1e0d9;border-radius:9px;margin-top:10px;background:#f9f9f7}
+button{width:100%;margin-top:14px;border:0;background:#2a78d6;color:#fff;font:inherit;font-size:15px;font-weight:600;padding:11px;border-radius:10px;cursor:pointer}
+#e{color:#d03b3b;font-size:13px;min-height:18px}
+</style>
+</head>
+<body>
+<div class="gate" id="gate">
+<h2><span class="dot"></span>Frontier Data Radar</h2>
+<p>Paste your Airtable token to open the radar. It is stored only in this browser and sent only to api.airtable.com.</p>
+<input id="t" type="password" placeholder="pat...">
+<button id="b">Open radar</button>
+<p id="e"></p>
+</div>
+<script>
+var BASE='appnrrLj7nkWimBEG';
+function load(cfg){
+return fetch('https://api.airtable.com/v0/'+(cfg.baseId||BASE)+'/Config?filterByFormula='+encodeURIComponent("{Key}='SITE_HTML'"),{headers:{'Authorization':'Bearer '+cfg.pat}})
+.then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+.then(function(j){var rec=j.records&&j.records[0];var html=rec&&rec.fields&&rec.fields.Value;if(!html)throw new Error('app record not found');document.open();document.write(html);document.close();});
+}
+document.getElementById('b').onclick=function(){
+var cfg={pat:document.getElementById('t').value.trim(),baseId:BASE};
+if(!cfg.pat){document.getElementById('e').textContent='Token required.';return;}
+localStorage.setItem('radar.cfg',JSON.stringify(cfg));
+document.getElementById('e').textContent='Loading...';
+load(cfg).catch(function(err){document.getElementById('e').textContent='Could not connect: '+err.message;});
+};
+var saved=null;
+try{saved=JSON.parse(localStorage.getItem('radar.cfg')||'null');}catch(err){}
+if(saved&&saved.pat){
+document.getElementById('e').textContent='Loading...';
+load(saved).catch(function(err){document.getElementById('e').textContent='Could not connect: '+err.message;});
+}
+</script>
+</body>
+</html>
